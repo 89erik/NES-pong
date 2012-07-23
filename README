@@ -8,4 +8,4 @@ NES emulator like Nintendulator or Nestopia.
 At the moment bounce.asm is the main source file. 
 It includes main.asm which contains the main loop,
 init.asm containing the code for initialization and
-constants.inc (contains constants!).
+constants.inc for the constants.
