@@ -1,3 +1,11 @@
 My summer project for learning some general assembly 
 and low level programming, and of course to program
 for the NES.
+
+bounce.nes is readily compiled and can be run in a 
+NES emulator like Nintendulator or Nestopia.
+
+At the moment bounce.asm is the main source file. 
+It includes main.asm which contains the main loop,
+init.asm containing the code for initialization and
+constants.inc (contains constants!).
