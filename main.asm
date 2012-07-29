@@ -1,41 +1,65 @@
-Start:
-
-	.include "init.asm"
-	
-	
-	
 ; -------------------------	;
 ; ---[ MAIN LOOP START ]--- ;
 ; ------------------------- ;	
 MainLoop:
-	LDA $2002
+	LDA PPU_STATUS
 	BPL MainLoop
+	
+	
+	
+	
+; ---[ SET X SCROLL ]---
+	LDX x_scroll
+	
+	LDA scroll_direction
+	CMP #$FF
+	BEQ @scroll_left
+	CMP #$00
+	BEQ @scroll_right
+
+	JMP @done_scrolling ;no_scroll
+	
+	@scroll_right:
+		INX
+		STX x_scroll
+		CPX #$00
+		BEQ @switch_nametable
+		
+		JMP @scroll_direction_set
+	@scroll_left:
+		DEX
+		STX x_scroll
+		CPX #$FF
+		BEQ @switch_nametable
+		
+	@scroll_direction_set:
+	
 
 
-; ---[ BALL ]---
+	JMP @done_scrolling
+	
+	@switch_nametable:	
+		LDA current_nametable
+		BEQ @next_nametable
+		;previous_nametable
+			LDA #%00
+			JMP @nametable_chosen
+		@next_nametable:
+			LDA #%01
+		@nametable_chosen:
+			STA current_nametable
 
-	; -[ Y-KOORDINAT ]-
-	LDA y_pos
-	STA ball_y
-	; -[ TILENUMMER FRA CHR-ROM ]-
-	LDA #2
-	STA ball_tile
-	; ---[ ATRIBUTT-BYTE ]---
-	LDA #%00000000; (Palett 0)
-	STA ball_attribute
-	; ---[ X-KOORDINAT ]---
-	LDA x_pos
-	STA ball_x
+	@set_nametable:
+		LDA ppu_ctrl_1
+		EOR #%00000011
+		STA ppu_ctrl_1
 
-
+	@done_scrolling:
 	
 	
 
-	
-	
-	
-	
-	
+
+
 	
 	
 	
@@ -65,12 +89,7 @@ RightRacket:
 	@finished_adding:
 	STA right_racket_y, Y
 	
-	; -[TILENUMMER FRA CHR-ROM]-
-	LDA #1
-	STA right_racket_tile, Y
-	; -[ATRIBUTT-BYTE]-
-	LDA #0; (setter ingen flagg)
-	STA right_racket_attribute, Y
+
 	; -[X-KOORDINAT]-
 	LDA #250
 	STA right_racket_x, Y
@@ -109,12 +128,6 @@ LeftRacket:
 	@finished_adding:
 	STA left_racket_y, Y
 	
-	; -[TILENUMMER FRA CHR-ROM]-
-	LDA #1
-	STA left_racket_tile, Y
-	; -[ATRIBUTT-BYTE]-
-	LDA #0; (setter ingen flagg)
-	STA left_racket_attribute, Y
 	; -[X-KOORDINAT]-
 	LDA #0
 	STA left_racket_x, Y
@@ -249,6 +262,7 @@ LeftRacketInput:
 	ADC x_vector
 	TAX
 	STA x_pos
+	STA ball_x ; update OAM
 	
 	; -[OPPDATERER Y]-
 	LDA y_pos
@@ -256,7 +270,7 @@ LeftRacketInput:
 	ADC y_vector
 	TAY
 	STA y_pos
-	
+	STA ball_y ; update OAM	
 	
 	
 	
@@ -447,6 +461,10 @@ WaitForUser:
 			LDA #2
 			STA x_vector
 			
+			; -[INIT SCROLL DIRECTION]-
+			LDA #$00
+			STA scroll_direction
+			
 			JMP @init_y_vector
 			
 		
@@ -460,6 +478,10 @@ WaitForUser:
 			; -[INIT BALL X VECTOR]-
 			LDA #-2
 			STA x_vector
+			
+			; -[INIT SCROLL DIRECTION]-
+			LDA #$FF
+			STA scroll_direction
 			
 			;JMP @init_y_vector
 			
@@ -488,7 +510,11 @@ WaitForUser:
 ; $FF means no hit
 ; Uses variable 'racket'
 ; racket = 1 means check for player 1 racket
-; racket = 2 means check for player 2 racket
+; racket = 2 means check for player 2 
+; On call, Y should contain data for which 
+; racket should be checked for.
+; Y = -1 means left racket
+; Y = 1 means right racket
 CheckHitFlipper:
 		PHA
 		TXA
@@ -497,10 +523,8 @@ CheckHitFlipper:
 		PHA
 		
 		LDA racket
-		;CMP #1
 		CPY #-1
 		BEQ @left_racket
-		;CMP #2
 		CPY #1
 		BEQ @right_racket
 		
@@ -511,7 +535,7 @@ CheckHitFlipper:
 	@right_racket:
 		LDA right_racket_pos
 		STA racket
-		JMP @racket_selected
+		;JMP @racket_selected
 	@racket_selected:
 
 		; -[SET UPPER LIMIT]-
@@ -544,6 +568,11 @@ CheckHitFlipper:
 		
 	; -[HIT]-
 	@racket_hit:
+		;set scroll
+		LDA scroll_direction
+		EOR #$FF
+		STA scroll_direction
+	
 		LDA y_pos
 		SEC
 		SBC racket

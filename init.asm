@@ -1,3 +1,5 @@
+Start:
+
 ; ---[ VENTER 2 FRAMES TIL PPU KOMMER SEG ]---
 	LDA $2002
 	BPL Start
@@ -43,7 +45,7 @@ LastPalett:
 	
 	
 	
-	
+	JMP SkipDrawInInit
 	
 	
 		; -[INIT BAKGRUNN]-
@@ -117,11 +119,11 @@ NextRow:
 	CPY #$1E
 	BNE Draw
 	
+SkipDrawInInit:	
 	
 	
 	
-	
-	.include "screentest.asm"
+	.include "fill_background.asm"
 	
 	
 	
@@ -152,6 +154,10 @@ NextRow:
 	STA p1_score
 	STA p2_score
 	STA hit_count
+	STA x_scroll
+	STA y_scroll
+	STA current_nametable
+	STA scroll_direction
 	
 	; -[INIT RACKET POSITION]-
 	;LDA #0 (A already 0)
@@ -169,10 +175,72 @@ NextRow:
 	STA x_vector
 	LDA #1
 	STA y_vector
+	
+	
+	; -[INIT POSITION-INDEPENDENT OAM DATA]-
+	
+	; BALL
+		LDA #2
+		STA ball_tile
+		LDA #%00000000; (Palett 0)
+		STA ball_attribute
+		
+	; RIGHT RACKET
+		LDA #1 ; tile
+		LDY #0
+		STA right_racket_tile, Y
+		LDY #4
+		STA right_racket_tile, Y
+		LDY #8
+		STA right_racket_tile, Y
+		
+		LDA #0; flags
+		LDY #0
+		STA right_racket_attribute, Y
+		LDY #4
+		STA right_racket_attribute, Y
+		LDY #8
+		STA right_racket_attribute, Y
+		
+	; LEFT RACKET
+		LDA #1 ; tile
+		LDY #0
+		STA left_racket_tile, Y
+		LDY #4
+		STA left_racket_tile, Y
+		LDY #8
+		STA left_racket_tile, Y
+		
+		LDA #0; flags
+		LDY #0
+		STA left_racket_attribute, Y
+		LDY #4
+		STA left_racket_attribute, Y
+		LDY #8
+		STA left_racket_attribute, Y
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 		
 	; -[INIT PPU]-
 	;bit# 76543210
-	LDA #%10010000 ; V-Blank interrupt ON, Sprite size = 8x8,
+	LDA #%10010001 ; V-Blank interrupt ON, Sprite size = 8x8, Nametable 1
+	STA ppu_ctrl_1
 	STA PPU_CTRL_1 ; BG tiles = $1000, Spr tiles = $0000, PPU adr inc = 1B
 	;bit# 76543210
 	LDA #%00011110 ; 

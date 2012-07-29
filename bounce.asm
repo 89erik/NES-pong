@@ -1,8 +1,10 @@
 .include "constants.inc"
 
 .segment "INES"
-	.byte "NES", $1A,1,1,9
-
+	.byte "NES", $1A,1,1,1
+	;      012    3  4 5 6
+	;http://wiki.nesdev.com/w/index.php/INES
+;1001
 .segment "VECTORS"
 	.word NMI 
 	.word Start
@@ -16,14 +18,15 @@ bg_tiles:
 	
 .segment "CODE"
 
+.include "init.asm"
 .include "main.asm"
 	
 	
 palett:
 	; Bakgrunnsgrafikk
-	.byte 0, 0,0,0
-	.byte 0, 0,0,0
-	.byte 0, 0,0,0
+	.byte 0, $15, $3C, $09
+	.byte 0, $15, $3C, $09
+	.byte 0, $15, $3C, $09
 	.byte 0, $15, $3C, $09
 	
 	.byte $11, $2A, $28, $21	; bakgrunn og sprite 0
@@ -57,11 +60,17 @@ NMI: ; ---[ V-BLANK INTERRUPT ]---
 	LDA p2_score
 	STA PPU_VALUE
 	
-	LDA #0
-	STA PPU_SCROLL ; Y scroll = 0
-	STA PPU_SCROLL ; X scroll = 0
+	; -[SCROLL]-
+	LDA x_scroll
+	STA PPU_SCROLL
+	LDA y_scroll
+	STA PPU_SCROLL
 	
-	; Sets the DMA to update the sprites
+	; -[UPDATE PPU CONTROLL REGISTERS]-
+	LDA ppu_ctrl_1
+	STA PPU_CTRL_1
+	
+	; -[DMA OAM UPDATE]-
 	LDA #$00
 	STA $2003
 	LDA #$02
@@ -77,54 +86,62 @@ IRQ:
 	
 .segment "RAM"
 	; Midlertidige variabler
-	derp:				.byte 0
-	tmp1:				.byte 0
-	tmp2:				.byte 0
-	tmp3:				.byte 0
-	p_register:			.byte 0
+	derp:						.byte 0
+	tmp1:						.byte 0
+	tmp2:						.byte 0
+	tmp3:						.byte 0
+	p_register:					.byte 0
 	
-	; Status-variabler
-	panick_mode:		.byte 0
-	bg_color:			.byte 0
-	p1_score:			.byte 0
-	p2_score:			.byte 0
-	hit_count:			.byte 0
+	; State variables
+	panick_mode:				.byte 0
+	bg_color:					.byte 0
+	p1_score:					.byte 0
+	p2_score:					.byte 0
+	hit_count:					.byte 0
 	
-	; Ballen
-	x_pos: 				.byte 0
-	y_pos: 				.byte 0
-	x_vector: 			.byte 0
-	y_vector: 			.byte 0
+	x_scroll:					.byte 0
+	y_scroll:					.byte 0
+	scroll_direction:			.byte 0
+	current_nametable:			.byte 0
 	
-	; Racketene
-	racket:				.byte 0
-	left_racket_pos: 	.byte 0
-	right_racket_pos: 	.byte 0
+	; Registers
+	ppu_ctrl_1:					.byte 0
 	
-	delta_racket_hit:	.byte 0
+	; The ball
+	x_pos: 						.byte 0
+	y_pos: 						.byte 0
+	x_vector: 					.byte 0
+	y_vector: 					.byte 0
+	
+	; The rackets
+	racket:						.byte 0
+	left_racket_pos: 			.byte 0
+	right_racket_pos: 			.byte 0
+	
+	delta_racket_hit:			.byte 0
 	delta_racket_hit_positive:	.byte 0
 	
-	; OAM
+	; Object Attribute Memory
 	.org $0200
-	ball_y:				.byte 0
-	ball_tile:			.byte 0
-	ball_attribute:		.byte 0
-	ball_x:				.byte 0
+	ball_y:						.byte 0
+	ball_tile:					.byte 0
+	ball_attribute:				.byte 0
+	ball_x:						.byte 0
 
-	right_racket_y:			.byte 0
-	right_racket_tile:		.byte 0
-	right_racket_attribute:	.byte 0
-	right_racket_x:			.byte 0
-							.byte 0,0,0,0	; kopi
-							.byte 0,0,0,0	; kopi
+	right_racket_y:				.byte 0
+	right_racket_tile:			.byte 0
+	right_racket_attribute:		.byte 0
+	right_racket_x:				.byte 0
+								.byte 0,0,0,0	; kopi
+								.byte 0,0,0,0	; kopi
 
 							
-	left_racket_y:			.byte 0
-	left_racket_tile:		.byte 0
-	left_racket_attribute:	.byte 0
-	left_racket_x:			.byte 0
-							.byte 0,0,0,0	; kopi
-							.byte 0,0,0,0	; kopi
+	left_racket_y:				.byte 0
+	left_racket_tile:			.byte 0
+	left_racket_attribute:		.byte 0
+	left_racket_x:				.byte 0
+								.byte 0,0,0,0	; kopi
+								.byte 0,0,0,0	; kopi
 							
 							
 	nametable_offset:		.byte 0
