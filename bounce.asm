@@ -91,7 +91,6 @@ IRQ:
 	x_scroll:					.byte 0
 	y_scroll:					.byte 0
 	scroll_direction:			.byte 0
-	current_nametable:			.byte 0
 		
 	; Registers
 	ppu_ctrl_1:					.byte 0

@@ -36,34 +36,16 @@ MainLoop:
 		BEQ @switch_nametable
 		
 	@scroll_direction_set:
-	
-
-
-	JMP @done_scrolling
+		JMP @done_scrolling
 	
 	@switch_nametable:	
-		LDA current_nametable
-		BEQ @next_nametable
-		;previous_nametable
-			LDA #%00
-			JMP @nametable_chosen
-		@next_nametable:
-			LDA #%01
-		@nametable_chosen:
-			STA current_nametable
-
-	@set_nametable:
 		LDA ppu_ctrl_1
 		EOR #%00000011
 		STA ppu_ctrl_1
 
 	@done_scrolling:
 	
-	
 
-
-
-	
 	
 	
 	

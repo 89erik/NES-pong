@@ -43,7 +43,6 @@ Start:
 		STA hit_count
 		STA x_scroll
 		STA y_scroll
-		STA current_nametable
 		STA scroll_direction
 	
 	; -[INIT RACKET POSITION]-
