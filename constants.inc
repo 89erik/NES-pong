@@ -12,6 +12,7 @@ PLAYER2				= $4017
 
 
 NAME_TABLE_1		= $20
+NAME_TABLE_2		= $24
 
 ; ---[ GAME CONSTANTS ]---
 MAX_Y_VECTOR		= $0A

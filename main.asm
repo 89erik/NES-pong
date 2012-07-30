@@ -146,9 +146,6 @@ LeftRacket:
 	
 	
 	
-	
-	
-	
 
 		
 ; ---[RIGHT RACKET INPUT ]---
@@ -195,9 +192,7 @@ RightRacketInput:
 	@end_of_task:
 	
 	
-	
-	
-	
+
 	
 ; ---[LEFT RACKET INPUT ]---
 LeftRacketInput:
@@ -252,11 +247,9 @@ LeftRacketInput:
 	
 	
 	
-	
-	
 
 ; ---[ MOVE BALL ]---
-	; -[OPPDATERER X]-
+	; -[UPDATE X]-
 	LDA x_pos
 	CLC
 	ADC x_vector
@@ -264,7 +257,7 @@ LeftRacketInput:
 	STA x_pos
 	STA ball_x ; update OAM
 	
-	; -[OPPDATERER Y]-
+	; -[UPDATE Y]-
 	LDA y_pos
 	CLC
 	ADC y_vector
@@ -616,7 +609,6 @@ CheckHitFlipper:
 
 PanickMode:
 		LDA panick_mode
-		CMP #0
 		BEQ @skip
 		
 		LDA #$3F

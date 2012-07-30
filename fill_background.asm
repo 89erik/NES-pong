@@ -1,5 +1,4 @@
 FillNametable1:	
-	
 		LDA #$20
 		STA PPU_ADRESS
 		LDA #0
