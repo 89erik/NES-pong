@@ -24,15 +24,15 @@ bg_tiles:
 	
 palett:
 	; Bakgrunnsgrafikk
-	.byte 0, $15, $3C, $09
+	.byte 0, $12, $3C, $09
 	.byte 0, $15, $3C, $09
 	.byte 0, $15, $3C, $09
 	.byte 0, $15, $3C, $09
 	
-	.byte $11, $2A, $28, $21	; bakgrunn og sprite 0
-	.byte $11, $15, $3C, $09	; sprite 1
-	.byte $11, $3F, $37, $00	; sprite 2
-	.byte $11, 0, 0, 0			; sprite 3
+	.byte $11, $2A, $28, $15
+	.byte $11, $15, $3C, $09
+	.byte $11, $3F, $37, $00
+	.byte $11, 0, 0, 0
 	
 
 
@@ -40,26 +40,11 @@ NMI: ; ---[ V-BLANK INTERRUPT ]---
 	PHA
 	TXA
 	PHA
-	
+
 	LDA PPU_STATUS		; clear adress part latch
 	
 	JSR PanickMode
-	
-	; Draws the background changes
-	LDA #NAME_TABLE_1
-	STA PPU_ADRESS
-	LDA #$7A
-	STA PPU_ADRESS
-	LDA p1_score
-	STA PPU_VALUE
-	
-	LDA #NAME_TABLE_1
-	STA PPU_ADRESS
-	LDA #$64
-	STA PPU_ADRESS
-	LDA p2_score
-	STA PPU_VALUE
-	
+		
 	; -[SCROLL]-
 	LDA x_scroll
 	STA PPU_SCROLL
@@ -76,6 +61,9 @@ NMI: ; ---[ V-BLANK INTERRUPT ]---
 	LDA #$02
 	STA $4014
 	
+	LDA #1
+	STA wait_for_v_blank
+	
 	PLA
 	TAX
 	PLA
@@ -90,7 +78,6 @@ IRQ:
 	tmp1:						.byte 0
 	tmp2:						.byte 0
 	tmp3:						.byte 0
-	p_register:					.byte 0
 	
 	; State variables
 	panick_mode:				.byte 0
@@ -98,18 +85,19 @@ IRQ:
 	p1_score:					.byte 0
 	p2_score:					.byte 0
 	hit_count:					.byte 0
+	wait_for_v_blank:			.byte 0
 	
+	; Scrolling
 	x_scroll:					.byte 0
 	y_scroll:					.byte 0
 	scroll_direction:			.byte 0
 	current_nametable:			.byte 0
-	
+		
 	; Registers
 	ppu_ctrl_1:					.byte 0
+
 	
 	; The ball
-	x_pos: 						.byte 0
-	y_pos: 						.byte 0
 	x_vector: 					.byte 0
 	y_vector: 					.byte 0
 	
@@ -142,7 +130,19 @@ IRQ:
 	left_racket_x:				.byte 0
 								.byte 0,0,0,0	; kopi
 								.byte 0,0,0,0	; kopi
+								
+	p1_score_y:					.byte 0
+	p1_score_tile:				.byte 0
+	p1_score_attribute:			.byte 0
+	p1_score_x:					.byte 0
+								.byte 0,0,0,0	; high digit
 							
+	p2_score_y:					.byte 0
+	p2_score_tile:				.byte 0
+	p2_score_attribute:			.byte 0
+	p2_score_x:					.byte 0
+								.byte 0,0,0,0	; high digit
+	
 							
 	nametable_offset:		.byte 0
 	nametable:

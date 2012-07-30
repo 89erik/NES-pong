@@ -53,9 +53,9 @@ Start:
 
 	; -[INIT BALL POSITION]-
 		LDA #50
-		STA x_pos
+		STA ball_x
 		LDA #50
-		STA y_pos
+		STA ball_y
 	
 	; -[INIT BALL VECTOR]-
 		LDA #2
@@ -65,7 +65,7 @@ Start:
 	
 	
 	
-	; -[INIT POSITION-INDEPENDENT OAM DATA]-
+	; -[INIT GAME-INDEPENDENT OAM DATA]-
 	; BALL
 		LDA #2
 		STA ball_tile
@@ -74,16 +74,14 @@ Start:
 		
 	; RIGHT RACKET
 		LDA #1 ; tile
-		LDY #0
-		STA right_racket_tile, Y
+		STA right_racket_tile
 		LDY #4
 		STA right_racket_tile, Y
 		LDY #8
 		STA right_racket_tile, Y
 		
 		LDA #0; flags
-		LDY #0
-		STA right_racket_attribute, Y
+		STA right_racket_attribute
 		LDY #4
 		STA right_racket_attribute, Y
 		LDY #8
@@ -91,20 +89,51 @@ Start:
 		
 	; LEFT RACKET
 		LDA #1 ; tile
-		LDY #0
-		STA left_racket_tile, Y
+		STA left_racket_tile
 		LDY #4
 		STA left_racket_tile, Y
 		LDY #8
 		STA left_racket_tile, Y
 		
 		LDA #0; flags
-		LDY #0
-		STA left_racket_attribute, Y
+		STA left_racket_attribute
 		LDY #4
 		STA left_racket_attribute, Y
 		LDY #8
 		STA left_racket_attribute, Y
+		
+	; PLAYER 1 AND 2 SCORES	
+		LDY #4 ; offset for high digit
+		
+		LDA #32 ; y pos
+		STA p1_score_y			; p1 low digit
+		STA p2_score_y			; p2 low digit
+		STA p1_score_y, Y		; p1 high digit
+		STA p2_score_y, Y		; p2 high digit
+		
+		LDA #$10 ; tile number
+		STA p1_score_tile			; p1 low digit
+		STA p2_score_tile			; p2 low digit
+		STA p1_score_tile, Y		; p1 high digit
+		STA p2_score_tile, Y		; p2 high digit
+		
+		LDA #0 ; attribute byte
+		STA p1_score_attribute			; p1 low digit
+		STA p2_score_attribute			; p2 low digit
+		STA p1_score_attribute, Y		; p1 high digit
+		STA p2_score_attribute, Y		; p2 high digit
+		
+		; x pos player 1
+		LDA #32 
+		STA p1_score_x, Y		; p1 high digit
+		LDA #40
+		STA p1_score_x			; p1 low digit
+		
+		; x pos player 2
+		LDA #200
+		STA p2_score_x, Y		; p2 high digit
+		LDA #208
+		STA p2_score_x			; p1 low digit
 
 		
 	; -[INIT PPU]-

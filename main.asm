@@ -2,8 +2,11 @@
 ; ---[ MAIN LOOP START ]--- ;
 ; ------------------------- ;	
 MainLoop:
-	LDA PPU_STATUS
-	BPL MainLoop
+	LDA wait_for_v_blank
+	BEQ MainLoop
+	
+	LDA #0
+	STA wait_for_v_blank
 	
 	
 	
@@ -250,19 +253,19 @@ LeftRacketInput:
 
 ; ---[ MOVE BALL ]---
 	; -[UPDATE X]-
-	LDA x_pos
+	LDA ball_x
 	CLC
 	ADC x_vector
 	TAX
-	STA x_pos
+	STA ball_x
 	STA ball_x ; update OAM
 	
 	; -[UPDATE Y]-
-	LDA y_pos
+	LDA ball_y
 	CLC
 	ADC y_vector
 	TAY
-	STA y_pos
+	STA ball_y
 	STA ball_y ; update OAM	
 	
 	
@@ -277,13 +280,9 @@ LeftRacketInput:
 		JMP TestEdgeY
 		
 		@hit_left_wall:
-			;LDA #1
-			;STA racket
 			LDY #-1
 			JMP @wall_hit
 		@hit_right_wall:
-			;LDA #2
-			;STA racket
 			LDY #1
 			JMP @wall_hit
 
@@ -381,26 +380,84 @@ TestEdgeY:
 	
 ; ---[ FLIPPER MISS ]---------------------
 FlipperNoHit:
-;		LDX x_pos
+;		LDX ball_x
 		;CPX #LEFT_WALL
 		CPY #1
-		BEQ @p2_win
+		BEQ @p1_win
 		;CPX #RIGHT_WALL
 		CPY #-1
-		BEQ @p1_win
+		BEQ @p2_win
 		;JMP PanickMode
 	@p1_win:
 		LDX p1_score
 		INX
 		STX p1_score
+		TXA
+		CMP #10
+		BCS @p1_two_digits
+		;@p1_one_digit
+			CLC
+			ADC #$10
+			STA p1_score_tile
+			JMP WaitForUser
+		@p1_two_digits:
+			JSR SplitDigits
+			
+			CLC
+			ADC #$10
+			STA p1_score_tile ; low digit
+			
+			TXA
+			CLC
+			ADC #$10
+			LDY #4 ;offset for high digit			
+			STA p1_score_tile, Y ; high digit
+			
+			JMP WaitForUser
 		
-		JMP WaitForUser
 	@p2_win:
 		LDX p2_score
 		INX
 		STX p2_score
+		TXA
+		CMP #10
+		BCS @p2_two_digits
+		;@p2_one_digit
+			CLC
+			ADC #$10
+			STA p2_score_tile
+			JMP WaitForUser
+		@p2_two_digits:
+			JSR SplitDigits			
+			
+			CLC
+			ADC #$10
+			STA p2_score_tile ; low digit
+			
+			TXA
+			CLC
+			ADC #$10
+			LDY #4 ;offset for high digit			
+			STA p2_score_tile, Y ; high digit
+			
+			JMP WaitForUser
 		
-		JMP WaitForUser
+		
+	; Input: 	A = two-digit input
+	; Output: 	X = high digit
+	;			A = low digit
+	SplitDigits:
+		LDX #0
+		@check_again:
+			INX	
+			SEC
+			SBC #10
+			CMP #10
+			BCS @check_again
+		RTS		
+	
+	
+
 ; ----------------------------------------
 
 
@@ -446,9 +503,9 @@ WaitForUser:
 		@p1_start:
 			; -[INIT BALL POSITION]-
 			LDA #50
-			STA x_pos
+			STA ball_x
 			LDA left_racket_pos
-			STA y_pos
+			STA ball_y
 		
 			; -[INIT BALL X VECTOR]-
 			LDA #2
@@ -464,9 +521,9 @@ WaitForUser:
 		@p2_start:
 			; -[INIT BALL POSITION]-
 			LDA #200
-			STA x_pos
+			STA ball_x
 			LDA right_racket_pos
-			STA y_pos
+			STA ball_y
 		
 			; -[INIT BALL X VECTOR]-
 			LDA #-2
@@ -479,7 +536,7 @@ WaitForUser:
 			;JMP @init_y_vector
 			
 		@init_y_vector:	
-			LDA y_pos
+			LDA ball_y
 			CMP #116
 			BCS @ball_rise
 			
@@ -501,21 +558,14 @@ WaitForUser:
 ; ------ [ FUNCTION CHECK HIT FLIPPER START ] ------
 ; Returns offset in delta_racket_hit
 ; $FF means no hit
-; Uses variable 'racket'
-; racket = 1 means check for player 1 racket
-; racket = 2 means check for player 2 
 ; On call, Y should contain data for which 
 ; racket should be checked for.
 ; Y = -1 means left racket
 ; Y = 1 means right racket
 CheckHitFlipper:
-		PHA
-		TXA
-		PHA
 		TYA
 		PHA
-		
-		LDA racket
+
 		CPY #-1
 		BEQ @left_racket
 		CPY #1
@@ -551,11 +601,11 @@ CheckHitFlipper:
 		TAY
 		
 	; -[TEST UPPER LIMIT]-
-		CPX y_pos
+		CPX ball_y
 		BCS @no_hit ; if (X >= pos), (pos < X)
 		
 	; -[TEST LOWER LIMIT]-
-		CPY y_pos
+		CPY ball_y
 		BEQ @racket_hit
 		BCC @no_hit ; if (Y <= pos), (pos > Y)
 		
@@ -566,7 +616,7 @@ CheckHitFlipper:
 		EOR #$FF
 		STA scroll_direction
 	
-		LDA y_pos
+		LDA ball_y
 		SEC
 		SBC racket
 		CMP #8
@@ -598,9 +648,6 @@ CheckHitFlipper:
 	@end_of_sub_routine:
 		PLA
 		TAY
-		PLA
-		TAX
-		PLA
 		RTS ; return
 ; ------ [ FUNCTION CHECK HIT FLIPPER END ] ------
 
